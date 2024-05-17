@@ -33,8 +33,7 @@ class GetData():
                     actual_func = self.options[function]
                     output = actual_func(extract)
                     if output is not None:
-                        output = tuple([url, output])
-                        # print(output)
+                        output = tuple([url]+output)
                         self.df.loc[len(self.df)] = output
             self.df.to_excel(dataframe_name, index=False)
         else:
