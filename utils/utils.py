@@ -1,6 +1,8 @@
 import json
 import os
+import re
 from dotenv import load_dotenv
+
 import textwrap
 from datetime import datetime, timedelta
 from IPython.display import Markdown, display
@@ -80,8 +82,49 @@ def upload(dataframes, spreadsheet_name):
         print("Data appended successfully.")
 
 
-def get_hospital_data(extraction):
-    heading = extraction.find('p', attrs={'class': 'result-page-title'}).string
-    tag = extraction.find('span', attrs={'class': 'page-tag-item'}).string
-    content = extraction.find('p', attrs={'class': 'result-page-content'}).string
-    return (heading, tag, content)
+def get_hospital_data(extraction, delta=None):
+    ## parkway east
+    # heading = extraction.find('p', attrs={'class': 'result-page-title'}).string
+    # tag = extraction.find('span', attrs={'class': 'page-tag-item'}).string
+    # content = extraction.find('p', attrs={'class': 'result-page-content'}).string
+    # return (heading, tag, content)
+
+    ## mayo healthcare - main page
+    # link = extraction.find('a')['href']
+    # heading = extraction.string
+    # print(heading, link)
+    # return (link, heading)
+
+    ## mayo healthcare - page depth level 1
+    start_list = ['try again in a couple of minutes', 'Clinic Health Letter']
+    end_list = ['information submitted for this request', 'Products & Services', 'Mayo ClinicConnect', 'Mayo Clinic', 'Patient Care & Health Information']
+    text = ''
+    temp = 1
+    for element in extraction:
+        # if any(end in element.text.strip() for end in end_list):
+        #     temp = 0
+        if re.search('h[1-6]', element.name) and temp == 1:
+            text+='\n'
+            text+=element.text.strip()  # Print heading with stripped text
+            text+='\n'
+            
+        elif element.name == 'ul' and temp == 1:
+            text+='\n'
+            all_li = element.find_all('li')
+            li = ['* ' + word.text.strip() + '\n' for word in all_li]
+            for single_li in li:
+                text+=single_li # Print list items with indentation
+            
+        elif temp == 1:
+            text+='\n'
+            text+=element.text.strip()  # Print paragraph with stripped text
+            text+='\n'
+        # if any(start in element.text.strip() for start in start_list):
+        #     temp = 1 
+        # if element.text.strip() == delta:
+        #     temp = 1
+        
+    if text != '':
+        return [text]
+    else:
+        return ['found nothing']

@@ -1,4 +1,5 @@
 from tqdm import tqdm
+from string import ascii_uppercase
 
 from processors.web_scrapper import GetData
 import pandas as pd
@@ -6,33 +7,17 @@ import pandas as pd
 # from utils.utils import gemini_convert, upload
 
 if __name__=="__main__":
-    url=r'https://www.parkwayeast.com.sg/conditions-treatments/health-search-results?page='
+    # url=r'https://www.mayoclinic.org/diseases-conditions/index?letter='
 
-    scrapper = GetData(columns=['url', 'Heading','Tag','Description'])
-    for i in tqdm(range(70, 101)):
-        url_page=url+str(i)
-        scrapper.get_data(url_page, 'div', 'class', 'page-search-result', ["get_hospital_data"])
+    # scrapper = GetData(columns=['url', 'link','Heading'])
+    # for i in tqdm(ascii_uppercase):
+    #     url_page=url+str(i)
+    #     scrapper.get_data(url_page, 'div', 'class', 'cmp-link', ["get_hospital_data"])
 
+    df = pd.read_excel('mayo-clinic main page.xlsx')
+    mc_pages_link = df['link']
+    headings = df['Heading']
+    scrapper = GetData(columns=['url', 'heading', 'overview'])
+    for url, heading in tqdm(zip(mc_pages_link, headings), total=5):
+        scrapper.get_data(url, ['h3', 'p', 'ul'], functions=["get_hospital_data"], delta=heading)
 
-
-# if __name__=="__main__":
-#     # url = r'https://www.moneycontrol.com/news/politics/'
-#     # scrapper = GetData(columns=['url','date','time'])
-#     # scrapper.get_data(url, 'li', 'class_', 'clearfix', ["get_timestamp_and_link"])
-#     # del url
-
-#     # scrapper = GetData(columns=['url', 'content'])
-#     df_temp = pd.read_excel('temporary.xlsx')
-#     # for url in df_temp['url']:
-#     #     scrapper.get_data(url, 'script', 'type', 'application/ld+json', ["getnews"], 'scrapped_url.xlsx')
-
-#     # df_scrapped = pd.read_excel('scrapped_url.xlsx')
-#     # converted_content = []
-#     # for content in tqdm(df_scrapped['content']):
-#     #     converted_content.append(gemini_convert(content))
-#     # df_scrapped['converted_content'] = converted_content
-#     # df_scrapped.to_excel('converted_content.xlsx')
-
-#     df_converted = pd.read_excel('converted_content.xlsx')
-
-#     upload([df_temp, df_converted], 'politics')
