@@ -2,6 +2,7 @@ import json
 import os
 from dotenv import load_dotenv
 import textwrap
+import requests
 
 from datetime import datetime, timedelta
 import pytz
@@ -21,49 +22,36 @@ GEMINI_KEY = os.getenv('GEMINI_KEY')
 genai.configure(api_key=GEMINI_KEY)
 model = genai.GenerativeModel('gemini-pro')
 
-today_date = datetime.today().date()
-today_date = today_date - timedelta(days=0)
-today_date = today_date.strftime("%d-%m-%Y")
-
-def to_markdown(markdown_text):
-    markdown_text = markdown_text.replace('**','*')
-    html_text = markdown2.markdown(markdown_text)
-    # plain_text = pypandoc.convert_text(html_text, 'rtf', format='html')
-    plain_text = BeautifulSoup(html_text, "html.parser")
-    plain_text = plain_text.get_text()
-
-    # plain_text = plain_text.prettify()
-    return str(plain_text)
-
-def get_timestamp_and_link(extraction):
+def get_top_gainer_list(extraction):
     link = extraction.find('a')['href']
-    timestamp = extraction.find('span').text
-    timestamp=timestamp.replace(" IST", "")
-    date_object = datetime.strptime(timestamp, "%B %d, %Y %I:%M %p")
-    india_timezone = pytz.timezone('Asia/Kolkata')  # IST corresponds to Indian Standard Time
-    date_object = india_timezone.localize(date_object)
-    utc_date_object = date_object.astimezone(pytz.utc)
-    formatted_date = utc_date_object.strftime("%d-%m-%Y")
-    formatted_time = utc_date_object.strftime("%H:%M:%S")
-    if today_date == formatted_date:
-        return [link, formatted_date, formatted_time]
+    return [link]
+
+def get_screener_page_data(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        roce_text = soup.find('span', text='ROCE')
+        roce = roce_text.find_next_sibling('span').text.strip()
+        print('ROCE', roce)
     else:
-        return None
+        return '',''
 
-def getnews(extraction):
-    json_data = extraction.string
-
-    # Parse the JSON data
-    parsed_data = json.loads(json_data, strict=False)
-
-    # Extract the value of the "articleBody" key
-    if len(parsed_data)!=0 and isinstance(parsed_data,list):
-        if 'articleBody' in parsed_data[0]:
-            article_body = parsed_data[0]['articleBody']
-            article_body = article_body.replace(r'&nbsp;', ' ')
-            article_body = article_body.replace(r'&amp;quot;', '"')
-            return [article_body]
-    return None
+def get_mc_page_data(extraction):
+    price = extraction.find('div', class_='inprice1 nsecp').get('rel')
+    percent = extraction.find('div', id='nsechange').text
+    volume = extraction.find('div', class_='rangamount nsevol').text.replace(',', '')
+    nse_element = extraction.find('span', text="NSE:")
+    short_hand = 'Not Found'
+    if nse_element:
+        short_hand = nse_element.find_next_sibling('p').text.strip()
+        screener_url = f'https://www.screener.in/company/{short_hand}/'
+        tradingview_url = f'https://in.tradingview.com/chart/yN9sgSm2/?symbol=NSE%3A{short_hand}'
+    else:
+        screener_url='NOT FOUND'
+        tradingview_url='NOT FOUND'
+        
+    # pe, roce = get_screener_page_data(screener_url)
+    return [price, percent, volume, float(price)*int(volume), screener_url, tradingview_url]
 
 def gemini_convert(message):
     try:

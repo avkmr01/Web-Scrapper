@@ -7,27 +7,16 @@ import pandas as pd
 from utils.utils import gemini_convert, upload
 
 if __name__=="__main__":
-    news_categories = [r'politics/', r'business/companies/', r'business/ipo/', r'business/economy/']
-    for news_category in news_categories:
-        category = os.path.basename(news_category.rstrip('/'))
-        print(f'**************************************Extracting {category} news**************************************')
-        print(category)
-        url = f'https://www.moneycontrol.com/news/{news_category}'
-        scrapper = GetData(columns=['main_url', 'link','date','time'])
-        scrapper.get_data(url, 'li', 'class', 'clearfix', ["get_timestamp_and_link"], f'assets/{category}_link_date.xlsx')
-        del url
 
-        scrapper = GetData(columns=['link', 'content'])
-        df_temp = pd.read_excel(f'assets/{category}_link_date.xlsx')
-        for url in df_temp['link']:
-            scrapper.get_data(url, 'script', 'type', 'application/ld+json', ["getnews"], f'assets/{category}_scrapped_url.xlsx')
+    # url = r'https://www.moneycontrol.com/stocks/marketstats/nse-gainer/all-companies_-2/'
+    # scrapper = GetData(columns = ['main_url', 'link'])
+    # scrapper.get_data(url, 'span', 'class', 'gld13 disin', ["get_top_gainer_list"], f'assets/extracted_link_data.xlsx')
 
-        df_scrapped = pd.read_excel(f'assets/{category}_scrapped_url.xlsx')
-        converted_content = []
-        for content in tqdm(df_scrapped['content']):
-            converted_content.append(gemini_convert(content))
-        df_scrapped['converted_content'] = converted_content
-        df_scrapped.to_excel(f'assets/{category}_converted_content.xlsx', index=False)
-
-        df_converted = pd.read_excel(f'assets/{category}_converted_content.xlsx')
-        upload([df_temp, df_converted], 'link', ['content','converted_content'], category)
+    
+    df_temp = pd.read_excel(f'assets/extracted_link_data.xlsx')
+    link_info_scrapper = GetData(columns = ['link', 'price', 'percent', 'volume', 'transaction', 'screener', 'tradingview'])
+    for url in tqdm(df_temp['link']):
+        link_info_scrapper.get_data(url, 'div', 'class', 'pnc_wrapper', ["get_mc_page_data"], f'assets/final_extracted.xlsx')
+    
+    
+    # upload([df_temp, df_converted], 'link', ['content','converted_content'], category)

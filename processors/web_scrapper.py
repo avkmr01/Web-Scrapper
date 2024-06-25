@@ -3,7 +3,7 @@ import json
 
 import requests
 from bs4 import BeautifulSoup
-from utils.utils import get_timestamp_and_link, getnews
+from utils.utils import get_top_gainer_list, get_mc_page_data
 from datetime import datetime, timedelta
 import pandas as pd
 
@@ -11,8 +11,8 @@ class GetData():
     def __init__(self, columns):
         self.columns = columns
         self.options = {
-            "get_timestamp_and_link": get_timestamp_and_link,
-            "getnews": getnews
+            "get_top_gainer_list": get_top_gainer_list,
+            "get_mc_page_data": get_mc_page_data
         }
         self.df = pd.DataFrame(columns=self.columns)
 
