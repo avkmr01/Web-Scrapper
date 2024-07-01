@@ -14,7 +14,7 @@ if __name__=="__main__":
 
     
     df_temp = pd.read_excel(f'assets/extracted_link_data.xlsx')
-    link_info_scrapper = GetData(columns = ['link', 'price', 'percent', 'volume', 'transaction', 'screener', 'tradingview'])
+    link_info_scrapper = GetData(columns = ['link', 'price', 'points', 'percent', 'volume', 'transaction', 'screener', 'tradingview'])
     for url in tqdm(df_temp['link']):
         link_info_scrapper.get_data(url, 'div', 'class', 'pnc_wrapper', ["get_mc_page_data"], f'assets/final_extracted.xlsx')
     

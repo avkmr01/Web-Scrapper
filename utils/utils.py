@@ -1,3 +1,4 @@
+import re
 import json
 import os
 from dotenv import load_dotenv
@@ -38,7 +39,9 @@ def get_screener_page_data(url):
 
 def get_mc_page_data(extraction):
     price = extraction.find('div', class_='inprice1 nsecp').get('rel')
-    percent = extraction.find('div', id='nsechange').text
+    points_n_percent = extraction.find('div', id='nsechange').text
+    splitted = re.split('[ (|%)]',points_n_percent)
+    points, percent = list(filter(None,splitted))
     volume = extraction.find('div', class_='rangamount nsevol').text.replace(',', '')
     nse_element = extraction.find('span', text="NSE:")
     short_hand = 'Not Found'
@@ -51,7 +54,7 @@ def get_mc_page_data(extraction):
         tradingview_url='NOT FOUND'
         
     # pe, roce = get_screener_page_data(screener_url)
-    return [price, percent, volume, float(price)*int(volume), screener_url, tradingview_url]
+    return [price, points, percent, volume, float(price)*int(volume), screener_url, tradingview_url]
 
 def gemini_convert(message):
     try:
