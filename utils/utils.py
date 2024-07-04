@@ -54,7 +54,7 @@ def get_mc_page_data(extraction):
         tradingview_url='NOT FOUND'
         
     # pe, roce = get_screener_page_data(screener_url)
-    return [price, points, percent, volume, float(price)*int(volume), screener_url, tradingview_url]
+    return [price, percent, float(price)*int(volume), screener_url, tradingview_url]
 
 def gemini_convert(message):
     try:
